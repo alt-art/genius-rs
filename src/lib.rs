@@ -11,7 +11,8 @@ mod tests {
 
     #[test]
     fn search_test() {
-        let genius = Genius::new();
+        dotenv::dotenv().expect("Can't load dot env file");
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         genius.search("Ariana Grande").unwrap();
     }
 }
@@ -24,11 +25,10 @@ pub struct Genius {
 }
 
 impl Genius {
-    pub fn new() -> Self {
-        dotenv::dotenv().expect("Can't load dot env file");
+    pub fn new(token: String) -> Self {
         Self {
             reqwest: reqwest::Client::new(),
-            token: format!("Bearer {}", dotenv::var("TOKEN").unwrap())
+            token: format!("Bearer {}", token)
         }
     }
 
