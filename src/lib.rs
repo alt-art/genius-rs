@@ -1,13 +1,12 @@
 use reqwest;
-use dotenv;
 
 mod search_response;
-
 use search_response::SearchResponse;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use dotenv;
 
     #[test]
     fn search_test() {
