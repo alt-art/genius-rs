@@ -1,8 +1,9 @@
 # genius-rs
 
-Rust library that allows interact with Genius API (Under development)
+Rust library that allows interact with Genius API (Under development).
 
-## Usage
+##  Searching for a Song
+
 ```rust
 use genius-rs;
 

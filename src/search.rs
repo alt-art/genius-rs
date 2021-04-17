@@ -18,9 +18,9 @@ pub struct Hits {
 
 #[derive(Deserialize, Debug)]
 pub struct Hit {
-    highlights: [String;0],
-    index: String,
-    r#type: String,
+    pub highlights: [String;0],
+    pub index: String,
+    pub r#type: String,
     pub result: Song
 }
 
