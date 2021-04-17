@@ -1,7 +1,7 @@
-use reqwest;
+use reqwest::Client;
 
-mod search_response;
-use search_response::SearchResponse;
+pub mod search;
+use search::SearchResponse;
 
 #[cfg(test)]
 mod tests {
@@ -12,14 +12,15 @@ mod tests {
     fn search_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        genius.search("Ariana Grande").unwrap();
+        let result = genius.search("Ariana Grande").unwrap();
+        println!("{}", result.response.hits[0].result.full_title);
     }
 }
 
 const URL:&str = "https://api.genius.com/";
 
 pub struct Genius {
-    reqwest: reqwest::Client,
+    reqwest: Client,
     token: String
 }
 
