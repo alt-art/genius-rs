@@ -3,7 +3,7 @@ use serde::{Deserialize};
 #[derive(Deserialize, Debug)]
 pub struct SearchResponse {
     meta: Meta,
-    pub response: SearchResult
+    pub response: Hits
 }
 
 #[derive(Deserialize, Debug)]
@@ -12,7 +12,7 @@ pub struct Meta {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SearchResult {
+pub struct Hits {
     pub hits: Vec<Hit>
 }
 
