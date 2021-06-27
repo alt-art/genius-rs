@@ -40,7 +40,9 @@ pub struct Genius {
     token: String
 }
 
+/// The main hub for interacting with the Genius API
 impl Genius {
+    /// Create an API Client at <https://genius.com/developers> and get the token to get Genius API access
     pub fn new(token: String) -> Self {
         Self {
             reqwest: reqwest::Client::new(),
@@ -49,6 +51,7 @@ impl Genius {
     }
 
     #[tokio::main]
+    /// Search for a song in Genius the result will be genius_rs::search::SearchResponse
     pub async fn search(self, q: &str) -> Result<SearchResponse, reqwest::Error> {
         let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
         .header("Authorization", self.token).send().await?.text().await?;
