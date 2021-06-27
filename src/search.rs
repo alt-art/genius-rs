@@ -2,7 +2,7 @@ use serde::{Deserialize};
 
 #[derive(Deserialize, Debug)]
 pub struct SearchResponse {
-    meta: Meta,
+    pub meta: Meta,
     pub response: Hits
 }
 
