@@ -1,11 +1,11 @@
-//! # genius-rs
+//! # genius_rs
 //!
 //!  Rust library that allows interact with Genius API (Under development)
 //!
 //! ## Searching for a Song
 //!
 //! ```rust
-//! use genius-rs;
+//! use genius_rs;
 //!
 //! fn main() {
 //!     let genius = Genius::new("#TOKEN#");
