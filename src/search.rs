@@ -8,7 +8,7 @@ pub struct SearchResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct Meta {
-    pub status: u8
+    pub status: u32
 }
 
 #[derive(Deserialize, Debug)]
