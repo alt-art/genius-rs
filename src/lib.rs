@@ -59,15 +59,15 @@ impl Genius {
 
     #[tokio::main]
     /// Search for a song in Genius the result will be genius_rs::search::SearchResponse
-    pub async fn search(self, q: &str) -> Result<SearchResponse, reqwest::Error> {
+    pub async fn search(&self, q: &str) -> Result<SearchResponse, reqwest::Error> {
         let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
-        .header("Authorization", self.token).send().await?.text().await?;
+        .header("Authorization", self.token.as_str()).send().await?.text().await?;
         let result: SearchResponse = serde_json::from_str(&res.as_str()).unwrap();
         Ok(result)
     }
 
     #[tokio::main]
-    pub async fn get_lyrics(self, url: &str) -> Result<Vec<String>, reqwest::Error> {
+    pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
         let res = &self.reqwest.get(url).send().await?.text().await?;
         let document = Html::parse_document(res);
         let div_lyrics = Selector::parse(r#"div[class="lyrics"]"#).expect("Selector::parse is getting on error");
