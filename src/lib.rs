@@ -5,10 +5,10 @@
 //! ## Searching for a Song
 //!
 //! ```rust
-//! use genius_rs;
+//! use genius_rs::Genius;
 //!
 //! fn main() {
-//!     let genius = Genius::new("#TOKEN#");
+//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
 //!     let result = genius.search("Ariana Grande").unwrap();
 //!     println!("{}", result.response.hits[0].result.full_title);
 //! }
