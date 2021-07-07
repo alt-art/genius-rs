@@ -30,6 +30,14 @@ mod tests {
         let result = genius.search("Ariana Grande").unwrap();
         println!("{}", result.response.hits[0].result.full_title);
     }
+
+    #[test]
+    fn get_lyrics_test() {
+        dotenv::dotenv().expect("Can't load dot env file");
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        let lyrics = genius.get_lyrics("https://genius.com/Sia-chandelier-lyrics");
+        assert!(lyrics.is_ok());
+    }
 }
 
 const URL:&str = "https://api.genius.com/";
