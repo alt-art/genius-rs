@@ -27,8 +27,8 @@ mod tests {
     fn search_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let result = genius.search("Ariana Grande").unwrap();
-        println!("{}", result.response.hits[0].result.full_title);
+        let result = genius.search("Ariana Grande");
+        assert!(result.is_ok());
     }
 
     #[test]
