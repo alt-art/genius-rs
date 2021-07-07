@@ -16,6 +16,7 @@
 
 use reqwest::Client;
 use serde::{Deserialize};
+use scraper::{Html, Selector};
 
 #[cfg(test)]
 mod tests {
@@ -55,6 +56,19 @@ impl Genius {
         .header("Authorization", self.token).send().await?.text().await?;
         let result: SearchResponse = serde_json::from_str(&res.as_str()).unwrap();
         Ok(result)
+    }
+
+    #[tokio::main]
+    pub async fn get_lyrics(self, url: &str) -> Result<Vec<String>, reqwest::Error> {
+        let res = &self.reqwest.get(url).send().await?.text().await?;
+        let document = Html::parse_document(res);
+        let div_lyrics = Selector::parse(r#"div[class="lyrics"]"#).expect("Selector::parse is getting on error");
+        let div = document.select(&div_lyrics).next().unwrap_or_else(|| {
+            let div_lyrics = Selector::parse(r#"div[id="lyrics"]"#).expect("Selector::parse is getting on error");
+            document.select(&div_lyrics).next().unwrap_or_else(|| {panic!("Could not parse lyrics in this url")})
+        });
+        let lyrics = div.text().map(String::from).collect::<Vec<String>>();
+        Ok(lyrics)
     }
 }
 
