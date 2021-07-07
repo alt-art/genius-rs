@@ -1,7 +1,8 @@
 //! # genius_rs
 //!
-//!  Rust library that allows interact with Genius API (Under development)
-//!
+//!  Rust library that allows interact with Genius API.
+//! 
+//!  Create an API Client at <https://genius.com/developers> and get the token to get Genius API access.
 //! ## Searching for a Song
 //!
 //! ```rust
@@ -11,6 +12,21 @@
 //!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
 //!     let result = genius.search("Ariana Grande").unwrap();
 //!     println!("{}", result.response.hits[0].result.full_title);
+//! }
+//! ```
+//! 
+//! ## Getting lyrics
+//!
+//! ```rust
+//! use genius_rs::Genius;
+//!
+//! fn main() {
+//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let result = genius.search("Sia").unwrap();
+//!     let lyrics = genius.get_lyrics(&result.response.hits[0].result.url).unwrap();
+//!     for verse in lyrics {
+//!         println!("{}", verse);
+//!     }
 //! }
 //! ```
 
@@ -58,7 +74,7 @@ impl Genius {
     }
 
     #[tokio::main]
-    /// Search for a song in Genius the result will be genius_rs::search::SearchResponse
+    /// Search for a song in Genius the result will be [`SearchResponse`]
     pub async fn search(&self, q: &str) -> Result<SearchResponse, reqwest::Error> {
         let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
         .header("Authorization", self.token.as_str()).send().await?.text().await?;
@@ -67,6 +83,7 @@ impl Genius {
     }
 
     #[tokio::main]
+    /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
         let res = &self.reqwest.get(url).send().await?.text().await?;
         let document = Html::parse_document(res);
