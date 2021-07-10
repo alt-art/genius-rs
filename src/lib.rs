@@ -1,7 +1,7 @@
 //! # genius_rs
 //!
 //!  Rust library that allows interact with Genius API.
-//! 
+//!
 //!  Create an API Client at <https://genius.com/developers> and get the token to get Genius API access.
 //! ## Searching for a Song
 //!
@@ -14,7 +14,7 @@
 //!     println!("{}", result.response.hits[0].result.full_title);
 //! }
 //! ```
-//! 
+//!
 //! ## Getting lyrics
 //!
 //! ```rust
@@ -39,19 +39,19 @@ mod tests {
     use super::*;
     use dotenv;
 
-    #[test]
-    fn search_test() {
+    #[tokio::test]
+    async fn search_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let result = genius.search("Ariana Grande");
+        let result = genius.search("Ariana Grande").await;
         assert!(result.is_ok());
     }
 
-    #[test]
-    fn get_lyrics_test() {
+    #[tokio::test]
+    async fn get_lyrics_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let lyrics = genius.get_lyrics("https://genius.com/Sia-chandelier-lyrics");
+        let lyrics = genius.get_lyrics("https://genius.com/Sia-chandelier-lyrics").await;
         assert!(lyrics.is_ok());
     }
 }
@@ -73,7 +73,7 @@ impl Genius {
         }
     }
 
-    #[tokio::main]
+
     /// Search for a song in Genius the result will be [`SearchResponse`]
     pub async fn search(&self, q: &str) -> Result<SearchResponse, reqwest::Error> {
         let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
@@ -82,7 +82,7 @@ impl Genius {
         Ok(result)
     }
 
-    #[tokio::main]
+
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
         let res = &self.reqwest.get(url).send().await?.text().await?;
