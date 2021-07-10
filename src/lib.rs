@@ -118,7 +118,8 @@ pub struct Hits {
 pub struct Hit {
     pub highlights: [String;0],
     pub index: String,
-    pub r#type: String,
+    #[serde(rename = "type")]
+    pub hit_type: String,
     pub result: SongSearch
 }
 
