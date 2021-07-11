@@ -52,7 +52,6 @@ mod tests {
 
     #[tokio::test]
     async fn search_test() {
-        dotenv::dotenv().expect("Can't load dot env file");
         let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
         let genius = Genius::new(token);
         let result = genius.search("Ariana Grande").await;
