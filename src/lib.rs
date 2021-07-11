@@ -7,6 +7,7 @@
 //!
 //! ```rust
 //! use genius_rs::Genius;
+//! use dotenv;
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -20,6 +21,7 @@
 //!
 //! ```rust
 //! use genius_rs::Genius;
+//! use dotenv;
 //!
 //! #[tokio::main]
 //! async fn main() {
