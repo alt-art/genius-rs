@@ -8,10 +8,13 @@
 //! ```rust
 //! use genius_rs::Genius;
 //! use dotenv;
+//! use std::env;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()}); // get token with any mode ps. don't store this secret on you code
+//! 
+//!     let genius = Genius::new(token);
 //!     let result = genius.search("Ariana Grande").await.unwrap();
 //!     println!("{}", result.response.hits[0].result.full_title);
 //! }
@@ -22,10 +25,13 @@
 //! ```rust
 //! use genius_rs::Genius;
 //! use dotenv;
-//!
+//! use std::env;
+//! 
 //! #[tokio::main]
 //! async fn main() {
-//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
+//! 
+//!     let genius = Genius::new(token);
 //!     let result = genius.search("Sia").await.unwrap();
 //!     let lyrics = genius.get_lyrics(&result.response.hits[0].result.url).await.unwrap();
 //!     for verse in lyrics {
@@ -42,11 +48,13 @@ use scraper::{Html, Selector};
 mod tests {
     use super::*;
     use dotenv;
+    use std::env;
 
     #[tokio::test]
     async fn search_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
+        let genius = Genius::new(token);
         let result = genius.search("Ariana Grande").await;
         assert!(result.is_ok());
     }
@@ -54,7 +62,8 @@ mod tests {
     #[tokio::test]
     async fn get_lyrics_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
+        let genius = Genius::new(token);
         let lyrics = genius.get_lyrics("https://genius.com/Sia-chandelier-lyrics").await;
         assert!(lyrics.is_ok());
     }
