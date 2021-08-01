@@ -1,8 +1,11 @@
 [package]
 name = "genius-rs"
+description = "Rust library that allows interact with Genius API"
 version = "0.2.1"
 authors = ["Pedro Mendes <pedromendescraft@gmail.com>"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/alt-art/genius-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,7 +14,6 @@ reqwest = "0.11.3"
 serde = { version = "1.0.125", features = ["derive"] }
 serde_json = "1.0.64"
 scraper = "0.12.0"
-
 
 [dev-dependencies]
 tokio = {version = "1.5.0", features = ["full"]}
