@@ -117,11 +117,26 @@ impl Genius {
         let res = &self.reqwest.get(url).header("Cookie","_genius_ab_test_cohort=33").send().await?.text().await?;
         let document = Html::parse_document(res);
         let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
+        let mut core_open = false;
+        let mut core_content = String::new();
         let mut lyrics = vec![];
         document.select(&lyrics_selector).for_each(|elem|
-            elem.text().for_each(|text|
-                lyrics.push(text.to_string())
-            )
+            elem.text().for_each(|text| {
+                let no_close = |a: char, b: char| text.contains(a) && !text.contains(b);
+                if no_close('[', ']') || no_close('(', ')') {
+                    core_open = true;
+                    core_content.push_str(text);
+                } else if core_open {
+                    core_content.push_str(text);
+                    if text.contains(']') || text.contains(')') {
+                        lyrics.push(core_content.to_string());
+                        core_content = String::new();
+                        core_open = false;
+                    }
+                } else {
+                    lyrics.push(text.to_string());
+                }
+            })
         );
         Ok(lyrics)
     }
