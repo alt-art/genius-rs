@@ -114,14 +114,15 @@ impl Genius {
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
-        let res = &self.reqwest.get(url).send().await?.text().await?;
+        let res = &self.reqwest.get(url).header("Cookie","_genius_ab_test_cohort=33").send().await?.text().await?;
         let document = Html::parse_document(res);
-        let div_lyrics = Selector::parse(r#"div[class="lyrics"]"#).expect("Selector::parse is getting on error");
-        let div = document.select(&div_lyrics).next().unwrap_or_else(|| {
-            let div_lyrics = Selector::parse(r#"div[id="lyrics"]"#).expect("Selector::parse is getting on error");
-            document.select(&div_lyrics).next().unwrap_or_else(|| {panic!("Could not parse lyrics in this url")})
-        });
-        let lyrics = div.text().map(String::from).collect::<Vec<String>>();
+        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
+        let mut lyrics = vec![];
+        document.select(&lyrics_selector).for_each(|elem|
+            elem.text().for_each(|text|
+                lyrics.push(text.to_string())
+            )
+        );
         Ok(lyrics)
     }
 
