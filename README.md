@@ -1,3 +1,5 @@
+![Crates.io](https://img.shields.io/crates/v/genius-rs?color=%2300aa00&style=flat-square) ![Crates.io (recent)](https://img.shields.io/crates/dr/genius-rs?style=flat-square) ![Crates.io](https://img.shields.io/crates/l/genius-rs?style=flat-square)
+
 # genius_rs
 
 Rust library that allows interact with Genius API.
