@@ -87,7 +87,7 @@ mod tests {
     }
 }
 
-const URL:&str = "https://api.genius.com/";
+const URL:&str = "https://api.genius.com";
 
 pub struct Genius {
     reqwest: Client,
@@ -99,15 +99,15 @@ impl Genius {
     /// Create an API Client at <https://genius.com/developers> and get the token to get Genius API access
     pub fn new(token: String) -> Self {
         Self {
-            reqwest: reqwest::Client::new(),
-            token: format!("Bearer {}", token)
+            reqwest: Client::new(),
+            token: token
         }
     }
 
     /// Search for a song in Genius the result will be [`search::Hit`]
     pub async fn search(&self, q: &str) -> Result<Vec<Hit>, reqwest::Error> {
-        let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
-        .header("Authorization", self.token.as_str()).send().await?.text().await?;
+        let res = &self.reqwest.get(format!("{}/search?q={}", URL, q))
+        .bearer_auth(&self.token).send().await?.text().await?;
         let result: SearchResponse = serde_json::from_str(&res.as_str()).unwrap();
         Ok(result.response.hits)
     }
@@ -143,8 +143,8 @@ impl Genius {
 
     /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Avaliabe text formats are `plain` and `html`
     pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
-        let res = &self.reqwest.get(format!("{}{}{}{}{}", URL, "songs/", id, "?text_format=", text_format))
-        .header("Authorization", self.token.as_str()).send().await?.text().await?;
+        let res = &self.reqwest.get(format!("{}/songs/{}?text_format={}", URL, id, text_format))
+        .bearer_auth(&self.token).send().await?.text().await?;
         let result: SongResponse = serde_json::from_str(&res.as_str()).unwrap();
         Ok(result.response.song)
     }
