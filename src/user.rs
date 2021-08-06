@@ -1,4 +1,4 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 use std::collections::BTreeMap as Map;
 
 #[derive(Deserialize, Debug)]

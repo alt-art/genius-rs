@@ -1,4 +1,4 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 
 use crate::annotation::AnnotationDescription;
 use crate::user::{User, UserMetadata};
