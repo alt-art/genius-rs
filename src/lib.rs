@@ -50,6 +50,7 @@ pub mod search;
 pub mod song;
 pub mod user;
 pub mod annotation;
+pub mod auth;
 
 use song::Song;
 use search::Hit;
