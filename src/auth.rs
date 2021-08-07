@@ -15,7 +15,7 @@ pub struct Auth {
 /// > If you are creating something server side, the `code` works great and this library has a method to handle it: [`authenticate`].
 ///
 /// Avaliabe scopes are `me`, `create_annotation`, `manage_annotation` and `vote`.
-pub fn auth_url(client_id: &str, redirect_uri: &str,scope: &str, state: &str, response_type: &str) -> String {
+pub fn auth_url(client_id: &str, response_type: &str, redirect_uri: &str,scope: &str, state: &str) -> String {
     let mut url = format!(
         "https://api.genius.com/oauth/authorize?client_id={}&response_type={}",
         client_id,
