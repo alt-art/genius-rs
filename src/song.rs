@@ -52,21 +52,19 @@ pub struct Song {
 pub struct SongContributor {
     pub contributions: Vec<String>,
     pub artist: Artist,
-    pub user: User
+    pub user: User,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct SongRelationship {
     pub relationship_type: String,
-    pub songs: Vec<Option<Song>>
+    pub songs: Vec<Option<Song>>,
 }
-
-
 
 #[derive(Deserialize, Debug)]
 pub struct SongPerformance {
     label: String,
-    artists: Vec<Artist>
+    artists: Vec<Artist>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -88,7 +86,7 @@ pub struct SongMedia {
     pub start: Option<u32>,
     #[serde(rename = "type")]
     pub media_type: String,
-    pub url: String
+    pub url: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -100,7 +98,7 @@ pub struct SongStatus {
     pub verified_annotations: Option<u32>,
     pub unreviewed_annotations: u32,
     pub hot: bool,
-    pub pageviews: Option<u32>
+    pub pageviews: Option<u32>,
 }
 
 #[derive(Deserialize, Debug)]

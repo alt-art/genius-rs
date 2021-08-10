@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::collections::BTreeMap as Map;
 
-use crate::user::{UserMetadata, User};
+use crate::user::{User, UserMetadata};
 use crate::Body;
 
 #[derive(Deserialize, Debug)]
@@ -11,7 +11,7 @@ pub struct AnnotationDescription {
     pub annotator_login: String,
     pub api_path: String,
     pub classification: String,
-    pub fragment:String,
+    pub fragment: String,
     pub id: u32,
     pub is_description: bool,
     pub path: String,
@@ -36,7 +36,7 @@ pub struct Annotation {
     pub verified: bool,
     pub votes_total: Option<u32>,
     pub current_user_metadata: UserMetadata,
-    pub authors: Vec<AnnotationAuthor>
+    pub authors: Vec<AnnotationAuthor>,
 }
 
 #[derive(Deserialize, Debug)]

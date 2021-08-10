@@ -13,25 +13,25 @@ pub struct User {
     pub name: String,
     pub role_for_display: String,
     pub url: String,
-    pub current_user_metadata: UserMetadata
+    pub current_user_metadata: UserMetadata,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct AvatarImage {
     pub url: String,
-    pub bounding_box: Map<String,u32>
+    pub bounding_box: Map<String, u32>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct UserMetadata {
     pub permissions: Vec<String>,
     pub excluded_permissions: Vec<String>,
-    pub interactions: Interactions
+    pub interactions: Interactions,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Interactions {
     cosign: Option<bool>,
     pyong: Option<bool>,
-    vote: Option<u32>
+    vote: Option<u32>,
 }
