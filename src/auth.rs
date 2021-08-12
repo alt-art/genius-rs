@@ -59,14 +59,11 @@ pub async fn authenticate(
         ("grant_type", "authorization_code"),
     ];
     let client = Client::new();
-    let res = client
+    let request = client
         .post("https://api.genius.com/oauth/token")
         .form(&form)
         .send()
-        .await?
-        .text()
         .await?;
-    let result: Auth = serde_json::from_str(&res.as_str()).unwrap();
-    println!("{:?}", result);
+    let result = request.json::<Auth>().await?;
     Ok(result)
 }

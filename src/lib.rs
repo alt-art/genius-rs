@@ -109,16 +109,14 @@ impl Genius {
 
     /// Search for a song in Genius the result will be [`search::Hit`]
     pub async fn search(&self, q: &str) -> Result<Vec<Hit>, reqwest::Error> {
-        let res = &self
+        let request = self
             .reqwest
             .get(format!("{}/search?q={}", URL, q))
             .bearer_auth(&self.token)
             .send()
-            .await?
-            .text()
             .await?;
-        let result: SearchResponse = serde_json::from_str(&res.as_str()).unwrap();
-        Ok(result.response.hits)
+        let res = request.json::<SearchResponse>().await?;
+        Ok(res.response.hits)
     }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
@@ -159,16 +157,14 @@ impl Genius {
 
     /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Avaliabe text formats are `plain` and `html`
     pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
-        let res = &self
+        let request = self
             .reqwest
             .get(format!("{}/songs/{}?text_format={}", URL, id, text_format))
             .bearer_auth(&self.token)
             .send()
-            .await?
-            .text()
             .await?;
-        let result: SongResponse = serde_json::from_str(&res.as_str()).unwrap();
-        Ok(result.response.song)
+        let res = request.json::<SongResponse>().await?;
+        Ok(res.response.song)
     }
 }
 
