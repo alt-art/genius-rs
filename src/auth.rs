@@ -26,15 +26,15 @@ pub fn auth_url(
         "https://api.genius.com/oauth/authorize?client_id={}&response_type={}",
         client_id, response_type
     );
-    if scope != "" {
+    if !scope.is_empty() {
         url.push_str("&scope=");
         url.push_str(scope);
     }
-    if redirect_uri != "" {
+    if !redirect_uri.is_empty() {
         url.push_str("&redirect_uri=");
         url.push_str(redirect_uri);
     }
-    if state != "" {
+    if !state.is_empty() {
         url.push_str("&state=");
         url.push_str(state);
     }
