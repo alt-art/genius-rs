@@ -56,7 +56,7 @@ use reqwest::Client;
 use scraper::{Html, Selector};
 use search::Hit;
 use serde::Deserialize;
-use song::Song;
+use song::{Album, Song};
 
 #[cfg(test)]
 mod tests {
@@ -103,7 +103,7 @@ impl Genius {
     pub fn new(token: String) -> Self {
         Self {
             reqwest: Client::new(),
-            token: token,
+            token,
         }
     }
 
@@ -115,8 +115,8 @@ impl Genius {
             .bearer_auth(&self.token)
             .send()
             .await?;
-        let res = request.json::<SearchResponse>().await?;
-        Ok(res.response.hits)
+        let res = request.json::<Response>().await?;
+        Ok(res.response.hits.unwrap())
     }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
@@ -163,8 +163,8 @@ impl Genius {
             .bearer_auth(&self.token)
             .send()
             .await?;
-        let res = request.json::<SongResponse>().await?;
-        Ok(res.response.song)
+        let res = request.json::<Response>().await?;
+        Ok(res.response.song.unwrap())
     }
 }
 
@@ -176,28 +176,18 @@ pub struct Body {
 
 #[derive(Deserialize, Debug)]
 struct Meta {
-    pub status: u32,
-    pub message: Option<String>,
+    status: u32,
+    message: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
-struct SearchResponse {
-    pub meta: Meta,
-    pub response: Hits,
+struct Response {
+    meta: Meta,
+    response: BlobResponse,
 }
 
 #[derive(Deserialize, Debug)]
-struct Hits {
-    pub hits: Vec<Hit>,
-}
-
-#[derive(Deserialize, Debug)]
-struct SongResponse {
-    pub meta: Meta,
-    pub response: SongGetter,
-}
-
-#[derive(Deserialize, Debug)]
-struct SongGetter {
-    pub song: Song,
+struct BlobResponse {
+    song: Option<Song>,
+    hits: Option<Vec<Hit>>,
 }
