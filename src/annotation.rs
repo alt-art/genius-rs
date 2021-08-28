@@ -16,7 +16,7 @@ pub struct AnnotationDescription {
     pub is_description: bool,
     pub path: String,
     pub range: Map<String, String>,
-    pub song_id: u32,
+    pub song_id: Option<u32>,
     pub url: String,
     pub annotations: Vec<Annotation>,
 }

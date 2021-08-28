@@ -1,5 +1,6 @@
 use serde::Deserialize;
 
+use crate::album::Album;
 use crate::annotation::AnnotationDescription;
 use crate::user::{User, UserMetadata};
 use crate::Body;
@@ -65,17 +66,6 @@ pub struct SongRelationship {
 pub struct SongPerformance {
     label: String,
     artists: Vec<Artist>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Album {
-    pub api_path: String,
-    pub cover_art_url: String,
-    pub full_title: String,
-    pub id: u32,
-    pub name: String,
-    pub url: String,
-    pub artist: Artist,
 }
 
 #[derive(Deserialize, Debug)]

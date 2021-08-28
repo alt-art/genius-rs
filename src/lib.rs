@@ -46,17 +46,19 @@
 //! }
 //! ```
 
+pub mod album;
 pub mod annotation;
 pub mod auth;
 pub mod search;
 pub mod song;
 pub mod user;
 
+use album::Album;
 use reqwest::Client;
 use scraper::{Html, Selector};
 use search::Hit;
 use serde::Deserialize;
-use song::{Album, Song};
+use song::Song;
 
 #[cfg(test)]
 mod tests {
@@ -75,18 +77,24 @@ mod tests {
     async fn get_lyrics_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let lyrics = genius
+        genius
             .get_lyrics("https://genius.com/Sia-chandelier-lyrics")
-            .await;
-        assert!(lyrics.is_ok());
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
     async fn get_song_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let result = genius.get_song(378195, "plain").await;
-        assert!(result.is_ok())
+        genius.get_song(378195, "plain").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn get_album_test() {
+        dotenv::dotenv().expect("Can't load dot env file");
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        genius.get_album(27501, "plain").await.unwrap();
     }
 }
 
@@ -166,6 +174,17 @@ impl Genius {
         let res = request.json::<Response>().await?;
         Ok(res.response.song.unwrap())
     }
+    /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Avaliabe text formats are `plain` and `html`
+    pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
+        let request = self
+            .reqwest
+            .get(format!("{}/albums/{}?text_format={}", URL, id, text_format))
+            .bearer_auth(&self.token)
+            .send()
+            .await?;
+        let res = request.json::<Response>().await?;
+        Ok(res.response.album.unwrap())
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -190,4 +209,5 @@ struct Response {
 struct BlobResponse {
     song: Option<Song>,
     hits: Option<Vec<Hit>>,
+    album: Option<Album>,
 }
