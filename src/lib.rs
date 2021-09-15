@@ -46,11 +46,17 @@
 //! }
 //! ```
 
+/// Album response
 pub mod album;
+/// Annotation response
 pub mod annotation;
+/// Authentication methods
 pub mod auth;
+/// Search response
 pub mod search;
+/// Song response
 pub mod song;
+/// User response
 pub mod user;
 
 use album::Album;
@@ -100,12 +106,12 @@ mod tests {
 
 const URL: &str = "https://api.genius.com";
 
+/// The main hub for interacting with the Genius API
 pub struct Genius {
     reqwest: Client,
     token: String,
 }
 
-/// The main hub for interacting with the Genius API
 impl Genius {
     /// Create an API Client at <https://genius.com/developers> and get the token to get Genius API access
     pub fn new(token: String) -> Self {
@@ -163,7 +169,7 @@ impl Genius {
         Ok(lyrics)
     }
 
-    /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Avaliabe text formats are `plain` and `html`
+    /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
     pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
         let request = self
             .reqwest
@@ -174,7 +180,7 @@ impl Genius {
         let res = request.json::<Response>().await?;
         Ok(res.response.song.unwrap())
     }
-    /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Avaliabe text formats are `plain` and `html`
+    /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
     pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
         let request = self
             .reqwest
