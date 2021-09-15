@@ -5,7 +5,7 @@ use crate::user::{User, UserMetadata};
 use crate::Body;
 
 #[derive(Deserialize, Debug)]
-pub struct AnnotationDescription {
+pub struct Referent {
     pub _type: String,
     pub annotator_id: u32,
     pub annotator_login: String,
