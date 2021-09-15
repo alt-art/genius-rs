@@ -14,7 +14,7 @@ pub struct Auth {
 /// only `response_type` and `client_id` is required, `response_type` can be `token` or `code`.
 /// > If you are creating something server side, the `code` works great and this library has a method to handle it: [`authenticate`].
 ///
-/// Avaliabe scopes are `me`, `create_annotation`, `manage_annotation` and `vote`.
+/// Available scopes are `me`, `create_annotation`, `manage_annotation` and `vote`.
 pub fn auth_url(
     client_id: &str,
     response_type: &str,
