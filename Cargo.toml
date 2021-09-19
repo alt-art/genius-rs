@@ -1,7 +1,7 @@
 [package]
 name = "genius-rs"
 description = "Rust library that allows interact with Genius API"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Pedro Mendes <pedromendescraft@gmail.com>"]
 edition = "2018"
 license = "MIT"
