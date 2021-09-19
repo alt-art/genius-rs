@@ -60,6 +60,7 @@ pub mod song;
 pub mod user;
 
 use album::Album;
+use regex::Regex;
 use reqwest::Client;
 use scraper::{Html, Selector};
 use search::Hit;
@@ -83,10 +84,13 @@ mod tests {
     async fn get_lyrics_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        genius
-            .get_lyrics("https://genius.com/Sia-chandelier-lyrics")
+        let lyrics = genius
+            .get_lyrics("https://genius.com/Lsd-thunderclouds-lyrics")
             .await
             .unwrap();
+        for verse in lyrics {
+            println!("{}", verse);
+        }
     }
 
     #[tokio::test]
@@ -143,28 +147,15 @@ impl Genius {
             .await?
             .text()
             .await?;
-        let document = Html::parse_document(res);
+        let regex_italic = Regex::new("</*i>").unwrap();
+        let html = String::from(regex_italic.replace_all(res, ""));
+        let document = Html::parse_document(&html);
         let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
-        let mut core_open = false;
-        let mut core_content = String::new();
         let mut lyrics = vec![];
         document.select(&lyrics_selector).for_each(|elem| {
             elem.text().for_each(|text| {
-                let no_close = |a: char, b: char| text.contains(a) && !text.contains(b);
-                if no_close('[', ']') || no_close('(', ')') {
-                    core_open = true;
-                    core_content.push_str(text);
-                } else if core_open {
-                    core_content.push_str(text);
-                    if text.contains(']') || text.contains(')') {
-                        lyrics.push(core_content.to_string());
-                        core_content = String::new();
-                        core_open = false;
-                    }
-                } else {
-                    lyrics.push(text.to_string());
-                }
-            })
+                lyrics.push(text.to_string());
+            });
         });
         Ok(lyrics)
     }
