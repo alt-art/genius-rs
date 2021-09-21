@@ -1,0 +1,71 @@
+use base64::decode;
+use chrono::offset::Utc;
+use hmac::{Hmac, Mac, NewMac};
+use reqwest::Client;
+use serde::Serialize;
+use sha2::Sha256;
+
+use crate::auth::AuthResponse;
+
+#[cfg(test)]
+mod test {
+    use crate::auth::login::*;
+    use dotenv;
+    #[tokio::test]
+    async fn login_with_username_test() {
+        dotenv::dotenv().expect("Can't load dot env file");
+        let auth = login_with_username("revolucao", &dotenv::var("PASSW").unwrap())
+            .await
+            .unwrap();
+        assert_eq!(auth.access_token.is_some(), true);
+    }
+}
+
+#[derive(Serialize)]
+struct AuthLoginRequest {
+    password: String,
+    username: String,
+    client_id: String,
+    client_secret_digest: String,
+    grant_type: String,
+    timestamp: String,
+}
+
+pub async fn login_with_username(
+    username: &str,
+    password: &str,
+) -> Result<AuthResponse, reqwest::Error> {
+    let auth_request = username_auth_body(username, password);
+    let client = Client::new();
+    let res: AuthResponse = client
+        .post("https://api.genius.com/oauth/token")
+        .json(&auth_request)
+        .send()
+        .await?
+        .json()
+        .await?;
+    Ok(res)
+}
+
+fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
+    let timestamp = Utc::now().timestamp().to_string();
+    let grant_type = "password".to_string();
+    let long_id_hist =
+        "aDNrY0UyM0ZkS1I0djZ1ck1ZVExrcDJUMGFOMFZ2WEdXMkY0a1VPMG5jWGZYeXk5Z2oxZGNSbnRmNnBJOS1RMA==";
+    let client_id = String::from_utf8(decode(long_id_hist).unwrap()).unwrap();
+    let client_secret_digest = digest(username, &timestamp);
+    AuthLoginRequest {
+        password: password.to_string(),
+        username: username.to_string(),
+        client_id,
+        client_secret_digest,
+        grant_type,
+        timestamp,
+    }
+}
+
+fn digest(username: &str, timestamp: &str) -> String {
+    let mut mac = Hmac::<Sha256>::new_from_slice(&decode("ZEVWWVpfcDVzX0tHY3Y0UGJJN015LWpjdXBhMHdWcTZJT081S1BqSzBKNjI2cXozWVA4OVphS1BTS3VHVDZONkQ1eTN1ZXc4WGVicnk4YmZXWkt5Rnc=").unwrap()).unwrap();
+    mac.update(format!("{}{}", username, timestamp).as_bytes());
+    format!("{:x}", mac.finalize().into_bytes())
+}
