@@ -1,8 +1,18 @@
 use reqwest::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize)]
+struct AuthRequest {
+    code: String,
+    client_secret: String,
+    client_id: String,
+    redirect_uri: String,
+    response_type: String,
+    grant_type: String,
+}
 
 #[derive(Deserialize, Debug)]
-pub struct Auth {
+pub struct AuthResponse {
     pub access_token: Option<String>,
     pub token_type: Option<String>,
     pub error: Option<String>,
@@ -41,29 +51,29 @@ pub fn auth_url(
     url
 }
 
-/// Transform the `code` in a token, the result is [`Auth`]. `code` expires so be very light on this operation.
+/// Transform the `code` in a token, the result is [`AuthResponse`]. `code` expires so be very light on this operation.
 ///
 /// `client_secret`, `client_id` and `redirect_uri` are found at <https://genius.com/api-clients>.
 pub async fn authenticate(
-    code: &str,
-    client_secret: &str,
-    client_id: &str,
-    redirect_uri: &str,
-) -> Result<Auth, reqwest::Error> {
-    let form = [
-        ("code", code),
-        ("client_secret", client_secret),
-        ("client_id", client_id),
-        ("redirect_uri", redirect_uri),
-        ("response_type", "code"),
-        ("grant_type", "authorization_code"),
-    ];
+    code: String,
+    client_secret: String,
+    client_id: String,
+    redirect_uri: String,
+) -> Result<AuthResponse, reqwest::Error> {
+    let auth_req = AuthRequest {
+        code,
+        client_secret,
+        client_id,
+        redirect_uri,
+        response_type: "code".to_string(),
+        grant_type: "authorization_code".to_string(),
+    };
     let client = Client::new();
     let request = client
         .post("https://api.genius.com/oauth/token")
-        .form(&form)
+        .json(&auth_req)
         .send()
         .await?;
-    let result = request.json::<Auth>().await?;
+    let result = request.json::<AuthResponse>().await?;
     Ok(result)
 }
