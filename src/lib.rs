@@ -139,7 +139,7 @@ impl Genius {
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
-        let res = &self
+        let res = self
             .reqwest
             .get(url)
             .header("Cookie", "_genius_ab_test_cohort=33")
@@ -148,15 +148,18 @@ impl Genius {
             .text()
             .await?;
         let regex_italic = Regex::new("</*i>").unwrap();
-        let html = String::from(regex_italic.replace_all(res, ""));
+        let html = regex_italic.replace_all(&res, "");
         let document = Html::parse_document(&html);
         let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
-        let mut lyrics = vec![];
-        document.select(&lyrics_selector).for_each(|elem| {
-            elem.text().for_each(|text| {
-                lyrics.push(text.to_string());
-            });
-        });
+        let lyrics = document.select(&lyrics_selector)
+            // Now we iterate over each element that matches the lyrics selector...
+            .map(|elem| elem.text())
+            // Now, we flatten the iterator over iterators over &strs into an iterator over &strs...
+            .flatten()
+            // ... map the &strs into owned Strings...
+            .map(ToString::to_string)
+            // ... and collect them into a vector of strings.
+            .collect();
         Ok(lyrics)
     }
 
