@@ -61,7 +61,10 @@ pub mod user;
 
 use album::Album;
 use regex::Regex;
-use reqwest::Client;
+use reqwest::{
+    Client,
+    Url,
+};
 use scraper::{Html, Selector};
 use search::Hit;
 use serde::Deserialize;
@@ -127,9 +130,14 @@ impl Genius {
 
     /// Search for a song in Genius the result will be [`search::Hit`]
     pub async fn search(&self, q: &str) -> Result<Vec<Hit>, reqwest::Error> {
+        let url = Url::parse_with_params(URL,
+            &[
+                ("q", q),
+            ]
+        ).expect("Could not parse valid URL from query for Genius search.");
         let request = self
             .reqwest
-            .get(format!("{}/search?q={}", URL, q))
+            .get(url)
             .bearer_auth(&self.token)
             .send()
             .await?;
@@ -139,6 +147,8 @@ impl Genius {
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
+        let url = Url::parse(url)
+            .expect("Could not parse valid URL from get_lyrics input.");
         let res = &self
             .reqwest
             .get(url)
@@ -162,9 +172,11 @@ impl Genius {
 
     /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
     pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
+        let url = Url::parse( &format!("{}/songs/{}?text_format={}", URL, id, text_format) )
+            .expect("Could not parse valid URL using input for get_song. Check text_format or character length of id.");
         let request = self
             .reqwest
-            .get(format!("{}/songs/{}?text_format={}", URL, id, text_format))
+            .get(url)
             .bearer_auth(&self.token)
             .send()
             .await?;
@@ -173,9 +185,11 @@ impl Genius {
     }
     /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
     pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
+        let url = Url::parse( &format!("{}/albums/{}?text_format={}", URL, id, text_format) )
+            .expect("Could not parse valid URL using input for albums. Check text_format or character length of id.");
         let request = self
             .reqwest
-            .get(format!("{}/albums/{}?text_format={}", URL, id, text_format))
+            .get(url)
             .bearer_auth(&self.token)
             .send()
             .await?;
