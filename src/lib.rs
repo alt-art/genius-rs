@@ -134,7 +134,7 @@ impl Genius {
             .send()
             .await?;
         let res = request.json::<Response>().await?;
-        Ok(res.response.hits.unwrap())
+        Ok(res.response.hits.expect("Genius response did not include \"hits\" field."))
     }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
@@ -147,10 +147,12 @@ impl Genius {
             .await?
             .text()
             .await?;
-        let regex_italic = Regex::new("</*i>").unwrap();
+        let regex_italic = Regex::new("</*i>")
+            .expect("Could not compile regex used to identify italic tags.");
         let html = String::from(regex_italic.replace_all(res, ""));
         let document = Html::parse_document(&html);
-        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
+        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8")
+            .expect("Error parsing for lyrics container elements in Genius page.");
         let mut lyrics = vec![];
         document.select(&lyrics_selector).for_each(|elem| {
             elem.text().for_each(|text| {
@@ -169,7 +171,7 @@ impl Genius {
             .send()
             .await?;
         let res = request.json::<Response>().await?;
-        Ok(res.response.song.unwrap())
+        Ok(res.response.song.expect("Genius response did not include \"song\" field."))
     }
     /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
     pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
@@ -180,7 +182,7 @@ impl Genius {
             .send()
             .await?;
         let res = request.json::<Response>().await?;
-        Ok(res.response.album.unwrap())
+        Ok(res.response.album.expect("Genius response did not include \"album\" field."))
     }
 }
 
