@@ -14,9 +14,9 @@ mod test {
     #[tokio::test]
     async fn login_with_username_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let auth = login_with_username("revolucao", &dotenv::var("PASSW").unwrap())
+        let auth = login_with_username("revolucao", &dotenv::var("PASSW").expect("Can't get this environment variable."))
             .await
-            .unwrap();
+            .expect("Error requesting login with username");
         assert_eq!(auth.access_token.is_some(), true);
     }
 }
@@ -52,7 +52,7 @@ fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
     let grant_type = "password".to_string();
     let long_id_hist =
         "aDNrY0UyM0ZkS1I0djZ1ck1ZVExrcDJUMGFOMFZ2WEdXMkY0a1VPMG5jWGZYeXk5Z2oxZGNSbnRmNnBJOS1RMA==";
-    let client_id = String::from_utf8(decode(long_id_hist).unwrap()).unwrap();
+    let client_id = String::from_utf8(decode(long_id_hist).expect("Unable to decode the client id.")).expect("Error transforming client id to string.");
     let client_secret_digest = digest(username, &timestamp);
     AuthLoginRequest {
         password: password.to_string(),
@@ -65,7 +65,7 @@ fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
 }
 
 fn digest(username: &str, timestamp: &str) -> String {
-    let mut mac = Hmac::<Sha256>::new_from_slice(&decode("ZEVWWVpfcDVzX0tHY3Y0UGJJN015LWpjdXBhMHdWcTZJT081S1BqSzBKNjI2cXozWVA4OVphS1BTS3VHVDZONkQ1eTN1ZXc4WGVicnk4YmZXWkt5Rnc=").unwrap()).unwrap();
+    let mut mac = Hmac::<Sha256>::new_from_slice(&decode("ZEVWWVpfcDVzX0tHY3Y0UGJJN015LWpjdXBhMHdWcTZJT081S1BqSzBKNjI2cXozWVA4OVphS1BTS3VHVDZONkQ1eTN1ZXc4WGVicnk4YmZXWkt5Rnc=").expect("Unable to decode the key.")).expect("An error occurred loading the key.");
     mac.update(format!("{}{}", username, timestamp).as_bytes());
     format!("{:x}", mac.finalize().into_bytes())
 }
