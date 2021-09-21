@@ -31,6 +31,8 @@ struct AuthLoginRequest {
     timestamp: String,
 }
 
+/// Log into an account with username and password the response will be [`AuthResponse`].
+/// The response token will be level user-core.
 pub async fn login_with_username(
     username: &str,
     password: &str,
