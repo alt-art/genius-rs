@@ -1,4 +1,4 @@
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
 pub mod login;
@@ -70,12 +70,10 @@ pub async fn authenticate(
         response_type: "code".to_string(),
         grant_type: "authorization_code".to_string(),
     };
+    let url = Url::parse("https://api.genius.com/oauth/token")
+        .expect("Could not parse valid URL from login_with_username input.");
     let client = Client::new();
-    let request = client
-        .post("https://api.genius.com/oauth/token")
-        .json(&auth_req)
-        .send()
-        .await?;
+    let request = client.post(url).json(&auth_req).send().await?;
     let result = request.json::<AuthResponse>().await?;
     Ok(result)
 }

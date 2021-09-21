@@ -1,7 +1,7 @@
 use base64::decode;
 use chrono::offset::Utc;
 use hmac::{Hmac, Mac, NewMac};
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Serialize;
 use sha2::Sha256;
 
@@ -14,9 +14,12 @@ mod test {
     #[tokio::test]
     async fn login_with_username_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let auth = login_with_username(&dotenv::var("USER").expect("Can't get username environment variable"), &dotenv::var("PASSW").expect("Can't get password environment variable."))
-            .await
-            .expect("Error requesting login with username");
+        let auth = login_with_username(
+            &dotenv::var("USER").expect("Can't get username environment variable"),
+            &dotenv::var("PASSW").expect("Can't get password environment variable."),
+        )
+        .await
+        .expect("Error requesting login with username");
         assert_eq!(auth.access_token.is_some(), true);
     }
 }
@@ -37,10 +40,12 @@ pub async fn login_with_username(
     username: &str,
     password: &str,
 ) -> Result<AuthResponse, reqwest::Error> {
+    let url = Url::parse("https://api.genius.com/oauth/token")
+        .expect("Could not parse valid URL from login_with_username input.");
     let auth_request = username_auth_body(username, password);
     let client = Client::new();
     let res: AuthResponse = client
-        .post("https://api.genius.com/oauth/token")
+        .post(url)
         .json(&auth_request)
         .send()
         .await?
@@ -54,7 +59,9 @@ fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
     let grant_type = "password".to_string();
     let long_id_hist =
         "aDNrY0UyM0ZkS1I0djZ1ck1ZVExrcDJUMGFOMFZ2WEdXMkY0a1VPMG5jWGZYeXk5Z2oxZGNSbnRmNnBJOS1RMA==";
-    let client_id = String::from_utf8(decode(long_id_hist).expect("Unable to decode the client id.")).expect("Error transforming client id to string.");
+    let client_id =
+        String::from_utf8(decode(long_id_hist).expect("Unable to decode the client id."))
+            .expect("Error transforming client id to string.");
     let client_secret_digest = digest(username, &timestamp);
     AuthLoginRequest {
         password: password.to_string(),
