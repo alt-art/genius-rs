@@ -15,8 +15,8 @@ mod test {
     async fn login_with_username_test() {
         dotenv::dotenv().expect("Can't load dot env file");
         let auth = login_with_username(
-            &dotenv::var("USER").expect("Can't get username environment variable"),
-            &dotenv::var("PASSW").expect("Can't get password environment variable."),
+            &dotenv::var("LOG_USER").expect("Can't get username environment variable"),
+            &dotenv::var("LOG_PASSW").expect("Can't get password environment variable."),
         )
         .await
         .expect("Error requesting login with username");
