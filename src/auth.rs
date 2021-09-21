@@ -1,6 +1,7 @@
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
+/// Authentication by login.
 pub mod login;
 
 #[derive(Serialize)]
@@ -13,6 +14,7 @@ struct AuthRequest {
     grant_type: String,
 }
 
+/// Authentication response.
 #[derive(Deserialize, Debug)]
 pub struct AuthResponse {
     pub access_token: Option<String>,
