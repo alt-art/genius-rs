@@ -14,7 +14,7 @@ mod test {
     #[tokio::test]
     async fn login_with_username_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let auth = login_with_username("revolucao", &dotenv::var("PASSW").expect("Can't get this environment variable."))
+        let auth = login_with_username(&dotenv::var("USER").expect("Can't get username environment variable"), &dotenv::var("PASSW").expect("Can't get password environment variable."))
             .await
             .expect("Error requesting login with username");
         assert_eq!(auth.access_token.is_some(), true);
