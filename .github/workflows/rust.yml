@@ -9,6 +9,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   TOKEN: ${{ secrets.TOKEN }}
+  LOG_PASSW: ${{ secrets.LOG_PASSW }}
+  LOG_USER: ${{ secrets.LOG_USER }}
 
 jobs:
   build:
