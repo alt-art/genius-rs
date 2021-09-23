@@ -55,7 +55,7 @@ pub fn auth_url(
     url
 }
 
-/// Transform the `code` in a token, the result is [`AuthResponse`]. `code` expires so be very light on this operation.
+/// Transform the `code` in a token, the result is [`AuthResponse`]. `code` expires so be very light on this operation. The response token will be level `client`.
 ///
 /// `client_secret`, `client_id` and `redirect_uri` are found at <https://genius.com/api-clients>.
 pub async fn authenticate(
