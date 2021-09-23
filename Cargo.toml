@@ -1,18 +1,24 @@
 [package]
 name = "genius-rs"
-version = "0.1.1"
+description = "Rust library that allows interact with Genius API"
+version = "0.4.0"
 authors = ["Pedro Mendes <pedromendescraft@gmail.com>"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/alt-art/genius-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = "0.11.3"
-serde = { version = "1.0.125", features = ["derive"] }
-serde_json = "1.0.64"
+base64 = "0.13.0"
+chrono = "0.4.19"
+hmac = "0.11.0"
+regex = "1.5.4"
+reqwest = { version = "0.11.4", features = ["json"] }
 scraper = "0.12.0"
-
+serde = { version = "1.0.130", features = ["derive"] }
+sha2 = "0.9.8"
 
 [dev-dependencies]
-tokio = {version = "1.5.0", features = ["full"]}
+tokio = { version = "1.11.0", features = ["full"] }
 dotenv = "0.15.0"

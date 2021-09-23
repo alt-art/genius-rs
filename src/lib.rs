@@ -7,16 +7,12 @@
 //!
 //! ```rust
 //! use genius_rs::Genius;
-//! use dotenv;
-//! use std::env;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()}); // get token with any mode ps. don't store this secret on you code
-//! 
-//!     let genius = Genius::new(token);
-//!     let result = genius.search("Ariana Grande").await.unwrap();
-//!     println!("{}", result.response.hits[0].result.full_title);
+//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let response = genius.search("Ariana Grande").await.unwrap();
+//!     println!("{}", response[0].result.full_title);
 //! }
 //! ```
 //!
@@ -24,25 +20,52 @@
 //!
 //! ```rust
 //! use genius_rs::Genius;
-//! use dotenv;
-//! use std::env;
-//! 
+//!
 //! #[tokio::main]
 //! async fn main() {
-//!     let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
-//! 
-//!     let genius = Genius::new(token);
-//!     let result = genius.search("Sia").await.unwrap();
-//!     let lyrics = genius.get_lyrics(&result.response.hits[0].result.url).await.unwrap();
+//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let response = genius.search("Sia").await.unwrap();
+//!     let lyrics = genius.get_lyrics(&response[0].result.url).await.unwrap();
 //!     for verse in lyrics {
 //!         println!("{}", verse);
 //!     }
 //! }
 //! ```
+//!
+//! ## Getting deeper information for a song by id
+//!
+//! ```rust
+//! use genius_rs::Genius;
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+//!     let response = genius.search("Weeknd").await.unwrap();
+//!     let song = genius.get_song(response[0].result.id, "plain").await.unwrap();
+//!     println!("{}", song.media.unwrap()[0].url)
+//! }
+//! ```
 
+/// Album response
+pub mod album;
+/// Annotation response
+pub mod annotation;
+/// Authentication methods
+pub mod auth;
+/// Search response
+pub mod search;
+/// Song response
+pub mod song;
+/// User response
+pub mod user;
+
+use album::Album;
+use regex::Regex;
 use reqwest::Client;
-use serde::{Deserialize};
 use scraper::{Html, Selector};
+use search::Hit;
+use serde::Deserialize;
+use song::Song;
 
 #[cfg(test)]
 mod tests {
@@ -61,120 +84,132 @@ mod tests {
     #[tokio::test]
     async fn get_lyrics_test() {
         dotenv::dotenv().expect("Can't load dot env file");
-        let token = dotenv::var("TOKEN").unwrap_or_else(|_| {env::var("TOKEN").unwrap().to_string()});
-        let genius = Genius::new(token);
-        let lyrics = genius.get_lyrics("https://genius.com/Sia-chandelier-lyrics").await;
-        assert!(lyrics.is_ok());
-    }
-}
-
-const URL:&str = "https://api.genius.com/";
-
-pub struct Genius {
-    reqwest: Client,
-    token: String
-}
-
-/// The main hub for interacting with the Genius API
-impl Genius {
-    /// Create an API Client at <https://genius.com/developers> and get the token to get Genius API access
-    pub fn new(token: String) -> Self {
-        Self {
-            reqwest: reqwest::Client::new(),
-            token: format!("Bearer {}", token)
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        let lyrics = genius
+            .get_lyrics("https://genius.com/Lsd-thunderclouds-lyrics")
+            .await
+            .unwrap();
+        for verse in lyrics {
+            println!("{}", verse);
         }
     }
 
-
-    /// Search for a song in Genius the result will be [`SearchResponse`]
-    pub async fn search(&self, q: &str) -> Result<SearchResponse, reqwest::Error> {
-        let res = &self.reqwest.get(format!("{}{}{}", URL, "search?q=", q))
-        .header("Authorization", self.token.as_str()).send().await?.text().await?;
-        let result: SearchResponse = serde_json::from_str(&res.as_str()).unwrap();
-        Ok(result)
+    #[tokio::test]
+    async fn get_song_test() {
+        dotenv::dotenv().expect("Can't load dot env file");
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        genius.get_song(378195, "plain").await.unwrap();
     }
 
+    #[tokio::test]
+    async fn get_album_test() {
+        dotenv::dotenv().expect("Can't load dot env file");
+        let genius = Genius::new(dotenv::var("TOKEN").unwrap());
+        genius.get_album(27501, "plain").await.unwrap();
+    }
+}
+
+const URL: &str = "https://api.genius.com";
+
+/// The main hub for interacting with the Genius API
+pub struct Genius {
+    reqwest: Client,
+    token: String,
+}
+
+impl Genius {
+    /// Create an API Client at <https://genius.com/developers> and get the token to get basic Genius API access. The token will be level client.
+    pub fn new(token: String) -> Self {
+        Self {
+            reqwest: Client::new(),
+            token,
+        }
+    }
+
+    /// Search for a song in Genius the result will be [`search::Hit`]
+    pub async fn search(&self, q: &str) -> Result<Vec<Hit>, reqwest::Error> {
+        let request = self
+            .reqwest
+            .get(format!("{}/search?q={}", URL, q))
+            .bearer_auth(&self.token)
+            .send()
+            .await?;
+        let res = request.json::<Response>().await?;
+        Ok(res.response.hits.unwrap())
+    }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
     pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
-        let res = &self.reqwest.get(url).send().await?.text().await?;
-        let document = Html::parse_document(res);
-        let div_lyrics = Selector::parse(r#"div[class="lyrics"]"#).expect("Selector::parse is getting on error");
-        let div = document.select(&div_lyrics).next().unwrap_or_else(|| {
-            let div_lyrics = Selector::parse(r#"div[id="lyrics"]"#).expect("Selector::parse is getting on error");
-            document.select(&div_lyrics).next().unwrap_or_else(|| {panic!("Could not parse lyrics in this url")})
-        });
-        let lyrics = div.text().map(String::from).collect::<Vec<String>>();
+        let res = self
+            .reqwest
+            .get(url)
+            .header("Cookie", "_genius_ab_test_cohort=33")
+            .send()
+            .await?
+            .text()
+            .await?;
+        let regex_italic = Regex::new("</*i>").unwrap();
+        let html = regex_italic.replace_all(&res, "");
+        let document = Html::parse_document(&html);
+        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
+        let lyrics = document
+            .select(&lyrics_selector)
+            // Now we iterate over each element that matches the lyrics selector...
+            .map(|elem| elem.text())
+            // Now, we flatten the iterator over iterators over &strs into an iterator over &strs...
+            .flatten()
+            // ... map the &strs into owned Strings...
+            .map(ToString::to_string)
+            // ... and collect them into a vector of strings.
+            .collect();
         Ok(lyrics)
+    }
+
+    /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
+    pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
+        let request = self
+            .reqwest
+            .get(format!("{}/songs/{}?text_format={}", URL, id, text_format))
+            .bearer_auth(&self.token)
+            .send()
+            .await?;
+        let res = request.json::<Response>().await?;
+        Ok(res.response.song.unwrap())
+    }
+    /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
+    pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
+        let request = self
+            .reqwest
+            .get(format!("{}/albums/{}?text_format={}", URL, id, text_format))
+            .bearer_auth(&self.token)
+            .send()
+            .await?;
+        let res = request.json::<Response>().await?;
+        Ok(res.response.album.unwrap())
     }
 }
 
-
 #[derive(Deserialize, Debug)]
-pub struct SearchResponse {
-    pub meta: Meta,
-    pub response: Hits
+pub struct Body {
+    pub plain: Option<String>,
+    pub html: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Meta {
-    pub status: u32
+struct Meta {
+    status: u32,
+    message: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Hits {
-    pub hits: Vec<Hit>
+struct Response {
+    meta: Meta,
+    response: BlobResponse,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Hit {
-    pub highlights: [String;0],
-    pub index: String,
-    #[serde(rename = "type")]
-    pub hit_type: String,
-    pub result: SongSearch
-}
-
-#[derive(Deserialize, Debug)]
-pub struct SongSearch {
-    pub annotation_count: u32,
-    pub api_path: String,
-    pub full_title: String,
-    pub header_image_thumbnail_url: String,
-    pub header_image_url: String,
-    pub id: u32,
-    pub lyrics_owner_id: u32,
-    pub lyrics_state: String,
-    pub path: String,
-    pub pyongs_count: u32,
-    pub song_art_image_thumbnail_url: String,
-    pub song_art_image_url: String,
-    pub song_art_primary_color: Option<String>,
-    pub song_art_secondary_color: Option<String>,
-    pub song_art_text_color: Option<String>,
-    pub stats: SongStatus,
-    pub title: String,
-    pub title_with_featured: String,
-    pub url: String,
-    pub primary_artist: Artist
-}
-
-#[derive(Deserialize, Debug)]
-pub struct SongStatus {
-    pub unreviewed_annotations: u32,
-    pub hot: bool,
-    pub pageviews: u32
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Artist {
-    pub api_path: String,
-    pub header_image_url: String,
-    pub id: u32,
-    pub image_url: String,
-    pub is_meme_verified: bool,
-    pub is_verified: bool,
-    pub name: String,
-    pub url: String,
-    pub iq: Option<u32>,
+struct BlobResponse {
+    song: Option<Song>,
+    hits: Option<Vec<Hit>>,
+    album: Option<Album>,
 }
