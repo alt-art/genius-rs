@@ -117,7 +117,7 @@ pub struct Genius {
 }
 
 impl Genius {
-    /// Create an API Client at <https://genius.com/developers> and get the token to get Genius API access
+    /// Create an API Client at <https://genius.com/developers> and get the token to get basic Genius API access. The token will be level client.
     pub fn new(token: String) -> Self {
         Self {
             reqwest: Client::new(),
@@ -151,7 +151,8 @@ impl Genius {
         let html = regex_italic.replace_all(&res, "");
         let document = Html::parse_document(&html);
         let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
-        let lyrics = document.select(&lyrics_selector)
+        let lyrics = document
+            .select(&lyrics_selector)
             // Now we iterate over each element that matches the lyrics selector...
             .map(|elem| elem.text())
             // Now, we flatten the iterator over iterators over &strs into an iterator over &strs...
