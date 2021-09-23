@@ -25,13 +25,12 @@ jobs:
           profile: minimal
           components: clippy
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-      - name: Build
-        run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
       - name: Annotate commit with clippy warnings
@@ -43,4 +42,3 @@ jobs:
         uses: actions-rs/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: Swatinem/rust-cache@v1
