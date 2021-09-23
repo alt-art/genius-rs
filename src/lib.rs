@@ -74,7 +74,6 @@ mod tests {
 
     #[tokio::test]
     async fn search_test() {
-        dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         let result = genius.search("Ariana Grande").await;
         assert!(result.is_ok());
@@ -82,7 +81,6 @@ mod tests {
 
     #[tokio::test]
     async fn get_lyrics_test() {
-        dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         let lyrics = genius
             .get_lyrics("https://genius.com/Lsd-thunderclouds-lyrics")
@@ -95,14 +93,12 @@ mod tests {
 
     #[tokio::test]
     async fn get_song_test() {
-        dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         genius.get_song(378195, "plain").await.unwrap();
     }
 
     #[tokio::test]
     async fn get_album_test() {
-        dotenv::dotenv().expect("Can't load dot env file");
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         genius.get_album(27501, "plain").await.unwrap();
     }
