@@ -25,6 +25,11 @@ jobs:
           profile: minimal
           components: clippy
           override: true
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
       - name: Build
         run: cargo build --verbose
       - name: Run tests
