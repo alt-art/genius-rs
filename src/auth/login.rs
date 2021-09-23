@@ -34,8 +34,24 @@ struct AuthLoginRequest {
     timestamp: String,
 }
 
-/// Log into an account with username and password the response will be [`AuthResponse`].
-/// The response token will be level user-core.
+/// Log into an account with username and password the response will be [`AuthResponse`]. The response token will be level `user-core`.
+/// #### Examples
+/// Basic usage:
+/// ```
+/// use genius_rs::auth::login;
+///
+/// # async fn run() -> Result<(), reqwest::Error> {
+/// let auth = login::login_with_username("username", "password")
+///     .await
+///     .expect("Error requesting login with username");
+///
+/// match auth.access_token {
+///     Some(token) => println!("The token is: {}.", token),
+///     None => println!("Incorrect username or password."),
+/// }
+/// # Ok(())
+/// # }
+/// ```
 pub async fn login_with_username(
     username: &str,
     password: &str,
