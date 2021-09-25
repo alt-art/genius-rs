@@ -32,27 +32,22 @@ pub struct AuthResponse {
 pub fn auth_url(
     client_id: &str,
     response_type: &str,
-    redirect_uri: &str,
-    scope: &str,
-    state: &str,
-) -> String {
-    let mut url = format!(
-        "https://api.genius.com/oauth/authorize?client_id={}&response_type={}",
-        client_id, response_type
-    );
-    if !scope.is_empty() {
-        url.push_str("&scope=");
-        url.push_str(scope);
+    redirect_uri: Option<&str>,
+    scope: Option<&str>,
+    state: Option<&str>,
+) -> Url {
+    let mut params = vec![("client_id", client_id), ("response_type", response_type)];
+    if let Some(redirect_uri) = redirect_uri {
+        params.push(("redirect_uri", redirect_uri));
     }
-    if !redirect_uri.is_empty() {
-        url.push_str("&redirect_uri=");
-        url.push_str(redirect_uri);
+    if let Some(scope) = scope {
+        params.push(("scope", scope));
     }
-    if !state.is_empty() {
-        url.push_str("&state=");
-        url.push_str(state);
+    if let Some(state) = state {
+        params.push(("state", state));
     }
-    url
+    Url::parse_with_params("https://api.genius.com/oauth/authorize", params)
+        .expect("Can't parse authentication URL.")
 }
 
 /// Transform the `code` in a token, the result is [`AuthResponse`]. `code` expires so be very light on this operation. The response token will be level `client`.
