@@ -1,6 +1,16 @@
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod test {
+    use crate::auth::*;
+    #[test]
+    fn auth_url_test() {
+        let url = auth_url("my_client_id", "code", None, Some("me vote"), None);
+        assert_eq!("https://api.genius.com/oauth/authorize?client_id=my_client_id&response_type=code&scope=me+vote", url.as_str());
+    }
+}
+
 /// Authentication by login.
 pub mod login;
 
