@@ -23,12 +23,23 @@ pub struct AuthResponse {
     pub error_description: Option<String>,
 }
 
-/// Format genius authentication URL, the result is an url. `client_id` and `redirect_uri` ​​are found at <https://genius.com/api-clients>.
+/// Format genius authentication URL, the result is a URL. `client_id` and `redirect_uri` ​​are found at <https://genius.com/api-clients>.
 ///
-/// only `response_type` and `client_id` is required, `response_type` can be `token` or `code`.
-/// > If you are creating something server side, the `code` works great and this library has a method to handle it: [`authenticate`].
+/// Only `response_type` and `client_id` is required, `response_type` can be `token` or `code`.
+/// When the response type is `token` the redirect URL will contain an `access_token` parameter with the token.
+/// When the response type is `code` The redirect URL will contain a `code` parameter with a code that using the [`authenticate`] function will return a token.
+/// > If you are creating something server-side, the `code` works great and this library has a method to handle it: [`authenticate`].
 ///
-/// Available scopes are `me`, `create_annotation`, `manage_annotation` and `vote`.
+/// The state will be a value that be passed when redirected.
+///
+/// The scope will define what permissions your application will have. Available scopes are `me`, `create_annotation`, `manage_annotation` and `vote`.
+/// #### Examples
+/// Basic usage:
+/// ```
+/// use genius_rs::auth::auth_url;
+///
+/// let auth_url = auth_url("my_client_id", "code", None, Some("me vote"), None);
+/// ```
 pub fn auth_url(
     client_id: &str,
     response_type: &str,
