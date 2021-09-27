@@ -10,7 +10,7 @@ pub struct User {
     /// User header image
     pub header_image_url: String,
     /// User role human readable.
-    pub human_readable_role_for_display: String,
+    pub human_readable_role_for_display: Option<String>,
     /// User id.
     pub id: u32,
     /// User iq.
@@ -20,7 +20,7 @@ pub struct User {
     /// User name.
     pub name: String,
     /// User role.
-    pub role_for_display: String,
+    pub role_for_display: Option<String>,
     /// User page url.
     pub url: String,
     /// User permissions and interactions.
