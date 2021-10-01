@@ -76,7 +76,7 @@ pub struct CoverArt {
 
 #[derive(Deserialize, Debug)]
 pub struct Date {
-    pub year: u32,
-    pub month: u32,
-    pub day: u32,
+    pub year: Option<u32>,
+    pub month: Option<u32>,
+    pub day: Option<u32>,
 }
