@@ -146,7 +146,7 @@ impl Genius {
         let regex_italic = Regex::new("</*i>").unwrap();
         let html = regex_italic.replace_all(&res, "");
         let document = Html::parse_document(&html);
-        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-8").unwrap();
+        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-10").unwrap();
         let lyrics = document
             .select(&lyrics_selector)
             // Now we iterate over each element that matches the lyrics selector...
