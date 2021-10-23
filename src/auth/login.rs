@@ -89,7 +89,10 @@ fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
 }
 
 fn digest(username: &str, timestamp: &str) -> String {
-    let mut mac = Hmac::<Sha256>::new_from_slice(&decode("ZEVWWVpfcDVzX0tHY3Y0UGJJN015LWpjdXBhMHdWcTZJT081S1BqSzBKNjI2cXozWVA4OVphS1BTS3VHVDZONkQ1eTN1ZXc4WGVicnk4YmZXWkt5Rnc=").expect("Unable to decode the key.")).expect("An error occurred loading the key.");
+    let mut mac = Hmac::<Sha256>::new_from_slice(
+        &decode("ZEVWWVpfcDVzX0tHY3Y0UGJJN015LWpjdXBhMHdWcTZJT081S1BqSzBKNjI2cXozWVA4OVphS1BTS3VHVDZONkQ1eTN1ZXc4WGVicnk4YmZXWkt5Rnc=")
+            .expect("Unable to decode the key.")
+    ).expect("An error occurred loading the key.");
     mac.update(format!("{}{}", username, timestamp).as_bytes());
     format!("{:x}", mac.finalize().into_bytes())
 }
