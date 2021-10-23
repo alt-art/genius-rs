@@ -191,6 +191,13 @@ pub struct Body {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct Date {
+    pub year: Option<u32>,
+    pub month: Option<u32>,
+    pub day: Option<u32>,
+}
+
+#[derive(Deserialize, Debug)]
 struct Meta {
     status: u32,
     message: Option<String>,
