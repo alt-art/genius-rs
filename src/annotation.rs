@@ -13,11 +13,17 @@ pub struct Referent {
     pub classification: String,
     pub fragment: String,
     pub id: u32,
+    /// > Only with `user-core` level token
+    pub ios_app_url: Option<String>,
     pub is_description: bool,
+    /// > Only with `user-core` level token
+    pub is_image: Option<bool>,
     pub path: String,
     pub range: Map<String, String>,
     pub song_id: Option<u32>,
     pub url: String,
+    /// > Only with `user-core` level token
+    pub current_user_metadata: Option<UserMetadata>,
     pub annotations: Vec<Annotation>,
 }
 
