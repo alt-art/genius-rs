@@ -41,7 +41,7 @@ pub struct UserMetadata {
     pub permissions: Vec<String>,
     /// Permissions you don't have.
     pub excluded_permissions: Vec<String>,
-    pub interactions: Interactions,
+    pub interactions: Option<Interactions>,
 }
 
 #[derive(Deserialize, Debug)]
