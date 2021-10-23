@@ -3,6 +3,7 @@ use serde::Deserialize;
 use crate::annotation::Referent;
 use crate::song::{Artist, SongPerformance};
 use crate::user::UserMetadata;
+use crate::Date;
 
 #[derive(Deserialize, Debug)]
 pub struct Album {
@@ -11,6 +12,9 @@ pub struct Album {
     /// Number of comments.
     /// > Only in `get_album`
     pub comment_count: Option<u32>,
+    /// Cover art thumbnail if the album.
+    /// > Only with `user-core` level token
+    pub cover_art_thumbnail_url: Option<String>,
     /// Cover art of the album.
     pub cover_art_url: String,
     /// Custom header image.
@@ -27,6 +31,9 @@ pub struct Album {
     pub lock_state: Option<String>,
     /// Name of the album.
     pub name: String,
+    /// Name with artist in `{album name} (artist: {artist name})`
+    /// > Only with `user-core` level token
+    pub name_with_artist: Option<String>,
     /// Number of pyongs in this album.
     /// > Only in `get_album`
     pub pyongs_count: Option<u32>,
@@ -34,7 +41,7 @@ pub struct Album {
     /// > Only in `get_album`
     pub release_date: Option<String>,
     /// Release date of the album in struct format [`Date`].
-    /// > Only in `get_album`
+    /// > Only in `get_album` or with `user-core` level token
     pub release_date_components: Option<Date>,
     /// Url of the album page.
     pub url: String,
@@ -72,11 +79,4 @@ pub struct CoverArt {
     pub thumbnail_image_url: String,
     /// Page of the art.
     pub url: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Date {
-    pub year: Option<u32>,
-    pub month: Option<u32>,
-    pub day: Option<u32>,
 }
