@@ -60,9 +60,7 @@ pub mod song;
 pub mod user;
 
 use album::Album;
-use regex::Regex;
 use reqwest::Client;
-use scraper::{Html, Selector};
 use search::Hit;
 use serde::Deserialize;
 use song::Song;
@@ -83,7 +81,7 @@ mod tests {
     async fn get_lyrics_test() {
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
         let lyrics = genius
-            .get_lyrics("https://genius.com/Lsd-thunderclouds-lyrics")
+            .get_lyrics(1)
             .await
             .unwrap();
         for verse in lyrics {
@@ -134,29 +132,19 @@ impl Genius {
     }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
-    pub async fn get_lyrics(&self, url: &str) -> Result<Vec<String>, reqwest::Error> {
-        let res = self
+    pub async fn get_lyrics(&self, id: u32) -> Result<Vec<String>, reqwest::Error> {
+        let request = self
             .reqwest
-            .get(url)
-            .header("Cookie", "_genius_ab_test_cohort=33")
+            .get(format!("https://lyrics.altart.tk/api/lyrics/{}", id))
             .send()
-            .await?
-            .text()
             .await?;
-        let regex_italic = Regex::new("</*i>").unwrap();
-        let html = regex_italic.replace_all(&res, "");
-        let document = Html::parse_document(&html);
-        let lyrics_selector = Selector::parse("div.Lyrics__Container-sc-1ynbvzw-10").unwrap();
-        let lyrics = document
-            .select(&lyrics_selector)
-            // Now we iterate over each element that matches the lyrics selector...
-            .map(|elem| elem.text())
-            // Now, we flatten the iterator over iterators over &strs into an iterator over &strs...
-            .flatten()
-            // ... map the &strs into owned Strings...
-            .map(ToString::to_string)
-            // ... and collect them into a vector of strings.
-            .collect();
+        let res = request.json::<Body>().await?;
+        let lyrics = res
+            .plain
+            .unwrap()
+            .split("\n")
+            .map(String::from)
+            .collect::<Vec<String>>();
         Ok(lyrics)
     }
 
