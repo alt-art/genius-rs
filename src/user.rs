@@ -46,7 +46,7 @@ pub struct UserMetadata {
 
 #[derive(Deserialize, Debug)]
 pub struct Interactions {
-    cosign: Option<bool>,
-    pyong: Option<bool>,
-    vote: Option<u32>,
+    pub cosign: Option<bool>,
+    pub pyong: Option<bool>,
+    pub vote: Option<u32>,
 }

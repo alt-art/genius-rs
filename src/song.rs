@@ -180,8 +180,8 @@ pub struct Song {
 
 #[derive(Deserialize, Debug)]
 pub struct TrackingPaths {
-    aggregate: String,
-    concurrent: String,
+    pub aggregate: String,
+    pub concurrent: String,
 }
 
 #[derive(Deserialize, Debug)]

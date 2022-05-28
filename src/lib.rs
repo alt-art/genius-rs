@@ -1,4 +1,4 @@
-//! # genius_rs
+//! # genius-rs
 //!
 //!  Rust library that allows interact with Genius API.
 //!
@@ -25,7 +25,7 @@
 //! async fn main() {
 //!     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
 //!     let response = genius.search("Sia").await.unwrap();
-//!     let lyrics = genius.get_lyrics(&response[0].result.url).await.unwrap();
+//!     let lyrics = genius.get_lyrics(response[0].result.id).await.unwrap();
 //!     for verse in lyrics {
 //!         println!("{}", verse);
 //!     }
@@ -46,12 +46,17 @@
 //! }
 //! ```
 
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::str_to_string)]
+#![allow(clippy::module_name_repetitions, clippy::struct_excessive_bools)]
+
 /// Album response
 pub mod album;
 /// Annotation response
 pub mod annotation;
 /// Authentication methods
 pub mod auth;
+/// Error response
+pub mod error;
 /// Search response
 pub mod search;
 /// Song response
@@ -60,6 +65,7 @@ pub mod song;
 pub mod user;
 
 use album::Album;
+use error::GeniusError;
 use reqwest::Client;
 use search::Hit;
 use serde::Deserialize;
@@ -68,7 +74,6 @@ use song::Song;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dotenv;
 
     #[tokio::test]
     async fn search_test() {
@@ -80,10 +85,7 @@ mod tests {
     #[tokio::test]
     async fn get_lyrics_test() {
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        let lyrics = genius
-            .get_lyrics(1)
-            .await
-            .unwrap();
+        let lyrics = genius.get_lyrics(1).await.unwrap();
         for verse in lyrics {
             println!("{}", verse);
         }
@@ -92,7 +94,7 @@ mod tests {
     #[tokio::test]
     async fn get_song_test() {
         let genius = Genius::new(dotenv::var("TOKEN").unwrap());
-        genius.get_song(378195, "plain").await.unwrap();
+        genius.get_song(378_195, "plain").await.unwrap();
     }
 
     #[tokio::test]
@@ -112,6 +114,7 @@ pub struct Genius {
 
 impl Genius {
     /// Create an API Client at <https://genius.com/developers> and get the token to get basic Genius API access. The token will be level client.
+    #[must_use]
     pub fn new(token: String) -> Self {
         Self {
             reqwest: Client::new(),
@@ -120,55 +123,137 @@ impl Genius {
     }
 
     /// Search for a song in Genius the result will be [`search::Hit`]
-    pub async fn search(&self, q: &str) -> Result<Vec<Hit>, reqwest::Error> {
+    ///
+    /// # Errors
+    ///
+    /// Will return [`GeniusError::RequestError`] if the request fails.
+    /// Will return [`GeniusError::Unauthorized`] if the token is invalid.
+    /// Will return [`GeniusError::ParseError`] if the response is not valid JSON if this occurs you should contact the developer.
+    /// Will return [`GeniusError::NotFound`] if the field `hits` is empty in the response if this occurs you should contact the developer.
+    pub async fn search(&self, q: &str) -> Result<Vec<Hit>, GeniusError> {
         let request = self
             .reqwest
             .get(format!("{}/search?q={}", URL, q))
             .bearer_auth(&self.token)
             .send()
-            .await?;
-        let res = request.json::<Response>().await?;
-        Ok(res.response.hits.unwrap())
+            .await;
+        let request = match request {
+            Ok(request) => request.json::<Response>().await,
+            Err(e) => return Err(GeniusError::RequestError(e.to_string())),
+        };
+        let res = match request {
+            Ok(res) => res.response.hits,
+            Err(e) => {
+                if let Some(status) = e.status() {
+                    if status.is_client_error() {
+                        return Err(GeniusError::Unauthorized(e.to_string()));
+                    }
+                }
+                return Err(GeniusError::ParseError(e.to_string()));
+            }
+        };
+        match res {
+            Some(res) => Ok(res),
+            None => Err(GeniusError::NotFound("Hits not found in data".to_owned())),
+        }
     }
 
     /// Get lyrics with an url of genius song like: <https://genius.com/Sia-chandelier-lyrics>
-    pub async fn get_lyrics(&self, id: u32) -> Result<Vec<String>, reqwest::Error> {
+    ///
+    /// # Errors
+    ///
+    /// Will return [`GeniusError::RequestError`] if the request fails.
+    /// Will return [`GeniusError::ParseError`] if the response is not valid JSON if this occurs you should contact the developer.
+    /// Will return [`GeniusError::NotFound`] if the field `hits` is empty in the response if this occurs you should contact the developer.
+    pub async fn get_lyrics(&self, id: u32) -> Result<Vec<String>, GeniusError> {
         let request = self
             .reqwest
             .get(format!("https://lyrics.altart.tk/api/lyrics/{}", id))
             .send()
-            .await?;
-        let res = request.json::<Body>().await?;
-        let lyrics = res
-            .plain
-            .unwrap()
-            .split("\n")
-            .map(String::from)
-            .collect::<Vec<String>>();
-        Ok(lyrics)
+            .await;
+        let request = match request {
+            Ok(request) => request.json::<Body>().await,
+            Err(e) => return Err(GeniusError::RequestError(e.to_string())),
+        };
+        let plain = match request {
+            Ok(res) => res.plain,
+            Err(e) => {
+                if let Some(status) = e.status() {
+                    if status.is_client_error() {
+                        return Err(GeniusError::Unauthorized(e.to_string()));
+                    }
+                }
+                return Err(GeniusError::ParseError(e.to_string()));
+            }
+        };
+        match plain {
+            Some(text) => Ok(text.split('\n').map(String::from).collect::<Vec<String>>()),
+            None => Err(GeniusError::NotFound("Lyrics not found in data".to_owned())),
+        }
     }
 
     /// Get deeper information from a song by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
-    pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, reqwest::Error> {
+    ///
+    /// # Errors
+    ///
+    /// Will return [`GeniusError::RequestError`] if the request fails.
+    /// Will return [`GeniusError::Unauthorized`] if the token is invalid.
+    /// Will return [`GeniusError::ParseError`] if the response is not valid JSON if this occurs you should contact the developer.
+    /// Will return [`GeniusError::NotFound`] if the field `hits` is empty in the response if this occurs you should contact the developer.
+    pub async fn get_song(&self, id: u32, text_format: &str) -> Result<Song, GeniusError> {
         let request = self
             .reqwest
             .get(format!("{}/songs/{}?text_format={}", URL, id, text_format))
             .bearer_auth(&self.token)
             .send()
-            .await?;
-        let res = request.json::<Response>().await?;
-        Ok(res.response.song.unwrap())
+            .await;
+        let request = match request {
+            Ok(request) => request.json::<Response>().await,
+            Err(e) => return Err(GeniusError::RequestError(e.to_string())),
+        };
+        let res = match request {
+            Ok(res) => res.response.song,
+            Err(e) => {
+                if let Some(status) = e.status() {
+                    if status.is_client_error() {
+                        return Err(GeniusError::Unauthorized(e.to_string()));
+                    }
+                }
+                return Err(GeniusError::ParseError(e.to_string()));
+            }
+        };
+        match res {
+            Some(res) => Ok(res),
+            None => Err(GeniusError::NotFound("Song not found in data".to_owned())),
+        }
     }
     /// Get deeper information from a album by it's id, `text_format` is the field for the format of text bodies related to the document. Available text formats are `plain` and `html`
-    pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, reqwest::Error> {
+    ///
+    /// # Errors
+    ///
+    /// Will return [`GeniusError::RequestError`] if the request fails.
+    /// Will return [`GeniusError::Unauthorized`] if the token is invalid.
+    /// Will return [`GeniusError::ParseError`] if the response is not valid JSON if this occurs you should contact the developer.
+    /// Will return [`GeniusError::NotFound`] if the field `hits` is empty in the response if this occurs you should contact the developer.
+    pub async fn get_album(&self, id: u32, text_format: &str) -> Result<Album, GeniusError> {
         let request = self
             .reqwest
             .get(format!("{}/albums/{}?text_format={}", URL, id, text_format))
             .bearer_auth(&self.token)
             .send()
-            .await?;
-        let res = request.json::<Response>().await?;
-        Ok(res.response.album.unwrap())
+            .await;
+        let request = match request {
+            Ok(request) => request.json::<Response>().await,
+            Err(e) => return Err(GeniusError::RequestError(e.to_string())),
+        };
+        let res = match request {
+            Ok(res) => res.response.album,
+            Err(e) => return Err(GeniusError::ParseError(e.to_string())),
+        };
+        match res {
+            Some(res) => Ok(res),
+            None => Err(GeniusError::NotFound("Album not found in data".to_owned())),
+        }
     }
 }
 
@@ -186,14 +271,7 @@ pub struct Date {
 }
 
 #[derive(Deserialize, Debug)]
-struct Meta {
-    status: u32,
-    message: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
 struct Response {
-    meta: Meta,
     response: BlobResponse,
 }
 

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
 mod test {
-    use crate::auth::*;
+    use crate::auth::auth_url;
     #[test]
     fn auth_url_test() {
         let url = auth_url("my_client_id", "code", None, Some("me vote"), None);
@@ -50,6 +50,7 @@ pub struct AuthResponse {
 ///
 /// let auth_url = auth_url("my_client_id", "code", None, Some("me vote"), None);
 /// ```
+#[must_use]
 pub fn auth_url(
     client_id: &str,
     response_type: &str,
@@ -74,6 +75,10 @@ pub fn auth_url(
 /// Transform the `code` in a token, the result is [`AuthResponse`]. `code` expires so be very light on this operation. The response token will be level `client`.
 ///
 /// `client_secret`, `client_id` and `redirect_uri` are found at <https://genius.com/api-clients>.
+///
+/// # Errors
+///
+/// If the code is not valid or the request fails.
 pub async fn authenticate(
     code: String,
     client_secret: String,
@@ -85,8 +90,8 @@ pub async fn authenticate(
         client_secret,
         client_id,
         redirect_uri,
-        response_type: "code".to_string(),
-        grant_type: "authorization_code".to_string(),
+        response_type: "code".to_owned(),
+        grant_type: "authorization_code".to_owned(),
     };
     let url = Url::parse("https://api.genius.com/oauth/token")
         .expect("Could not parse valid URL from login_with_username input.");

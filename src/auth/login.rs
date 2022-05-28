@@ -1,6 +1,6 @@
 use base64::decode;
 use chrono::offset::Utc;
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use reqwest::{Client, Url};
 use serde::Serialize;
 use sha2::Sha256;
@@ -9,7 +9,7 @@ use crate::auth::AuthResponse;
 
 #[cfg(test)]
 mod test {
-    use crate::auth::login::*;
+    use crate::auth::login::login_with_username;
     use dotenv;
     #[tokio::test]
     async fn login_with_username_test() {
@@ -19,7 +19,7 @@ mod test {
         )
         .await
         .expect("Error requesting login with username");
-        assert_eq!(auth.access_token.is_some(), true);
+        assert!(auth.access_token.is_some());
     }
 }
 
@@ -51,6 +51,10 @@ struct AuthLoginRequest {
 /// # Ok(())
 /// # }
 /// ```
+///
+/// # Errors
+///
+/// If the username or password is incorrect.
 pub async fn login_with_username(
     username: &str,
     password: &str,
@@ -71,7 +75,7 @@ pub async fn login_with_username(
 
 fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
     let timestamp = Utc::now().timestamp().to_string();
-    let grant_type = "password".to_string();
+    let grant_type = "password".to_owned();
     let long_id_hist =
         "aDNrY0UyM0ZkS1I0djZ1ck1ZVExrcDJUMGFOMFZ2WEdXMkY0a1VPMG5jWGZYeXk5Z2oxZGNSbnRmNnBJOS1RMA==";
     let client_id =
@@ -79,8 +83,8 @@ fn username_auth_body(username: &str, password: &str) -> AuthLoginRequest {
             .expect("Error transforming client id to string.");
     let client_secret_digest = digest(username, &timestamp);
     AuthLoginRequest {
-        password: password.to_string(),
-        username: username.to_string(),
+        password: password.to_owned(),
+        username: username.to_owned(),
         client_id,
         client_secret_digest,
         grant_type,
