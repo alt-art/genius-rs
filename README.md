@@ -26,7 +26,7 @@ use genius_rs::Genius;
 async fn main() {
     let genius = Genius::new(dotenv::var("TOKEN").unwrap());
     let response = genius.search("Sia").await.unwrap();
-    let lyrics = genius.get_lyrics(&response[0].result.url).await.unwrap();
+    let lyrics = genius.get_lyrics(&response[0].result.id).await.unwrap();
     for verse in lyrics {
         println!("{}", verse);
     }
