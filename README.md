@@ -4,6 +4,10 @@
 
 Rust library that allows interact with Genius API.
 
+| :warning: WARNING |
+|-|
+| This library is not maintained anymore due to my lack of interest in genius and my change of focus in development to developing “[commit](https://github.com/alt-art/commit)” |
+
 ##  Searching for a song
 
 ```rust
